@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::pattern::Pattern};
+use std::collections::HashMap;
 
 fn main() {
     let mut s1 = String::from("foo");
@@ -37,9 +37,9 @@ fn main() {
             None => continue,
             Some(char) => {
                 if vowels.contains(&char) {
-                    format!("{}{}-hay", char, word_slice)
+                    format!("{}-hay", word_slice)
                 } else {
-                    format!("{}-{}ay", word_slice, char)
+                    format!("{}-{}ay", &word_slice[1..], char)
                 }
             }
         };
