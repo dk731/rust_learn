@@ -1,6 +1,11 @@
+//! # My Crate
+//!
+//! `minigrep` is a simple copy of a well known tool called `grep`
+
 use std::error::Error;
 use std::{env, fs};
 
+/// Interface used to parse and store program input arguments
 #[derive(Debug)]
 pub struct InputConfig {
     file_path: String,
@@ -8,6 +13,22 @@ pub struct InputConfig {
 }
 
 impl InputConfig {
+    /// Method to generate new InputConfig
+    ///
+    /// # Examples
+    /// ```
+    /// use minigrep::InputConfig;
+    ///
+    /// // Prepear args
+    /// let args = vec!["my_file", "hello", "world"]
+    ///     .into_iter()
+    ///     .map(|el| el.to_string());
+    ///
+    /// let conf = InputConfig::build(args).unwrap();
+    ///
+    /// assert_eq!(conf.file_path(), "hello");
+    /// assert_eq!(conf.search_pattern(), "world");
+    /// ```
     pub fn build(mut args: impl Iterator<Item = String>) -> Result<InputConfig, &'static str> {
         args.next();
 
