@@ -8,14 +8,22 @@ pub struct InputConfig {
 }
 
 impl InputConfig {
-    pub fn build(args: &Vec<String>) -> Result<InputConfig, &'static str> {
-        if args.len() != 3 {
-            return Err("Please provide input parameters");
-        }
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<InputConfig, &'static str> {
+        args.next();
+
+        let file_path = match args.next() {
+            Some(val) => val,
+            None => return Err("Didnt get a file path"),
+        };
+
+        let search_pattern = match args.next() {
+            Some(val) => val,
+            None => return Err("Didnt get a search pattern"),
+        };
 
         Ok(InputConfig {
-            file_path: args[1].clone(),
-            search_pattern: args[2].clone(),
+            file_path,
+            search_pattern,
         })
     }
 
@@ -33,7 +41,6 @@ fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
         Err(_) => false,
         Ok(val) => val == "1",
     };
-    let mut result_vec = Vec::new();
 
     let parsed_query = if ignore_case {
         query.to_lowercase()
@@ -41,19 +48,17 @@ fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
         query.to_string()
     };
 
-    for line in contents.lines() {
-        let parsed_line = if ignore_case {
-            line.to_lowercase()
-        } else {
-            line.to_string()
-        };
-
-        if parsed_line.contains(&parsed_query) {
-            result_vec.push(line);
-        }
-    }
-
-    result_vec
+    contents
+        .lines()
+        .filter(|line| {
+            if ignore_case {
+                line.to_lowercase()
+            } else {
+                line.to_string()
+            }
+            .contains(&parsed_query)
+        })
+        .collect()
 }
 
 pub fn run(conf: InputConfig) -> Result<(), Box<dyn Error>> {
