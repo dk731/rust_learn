@@ -1,8 +1,10 @@
 use std::{
     fs,
-    io::{BufRead, BufReader, Write},
+    io::{BufRead, BufReader, Read, Write},
     net::{TcpListener, TcpStream},
 };
+
+mod HTTP;
 
 fn main() {
     let listener = TcpListener::bind("localhost:3005").unwrap();
@@ -16,19 +18,10 @@ fn main() {
 fn handle_connection(mut stream: TcpStream) {
     let html_str = fs::read_to_string("./hello.html").unwrap();
 
-    let buf_reader = BufReader::new(&mut stream);
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|line| line.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
+    let mut input_buffer = [0; 1024];
+    stream.read(&mut input_buffer).unwrap();
 
-    let status_line = "HTTP/1.1 200 OK\r\n\r\n";
-    let content_len = html_str.len();
-
-    let response = format!("{status_line}\r\nContent-Length: {content_len}\r\n\r\n{html_str}");
-
-    stream.write_all(response.as_bytes()).unwrap();
+    let req = HTTP::Request::new(input_buffer).unwrap();
 
     // println!("{response}");
 }
