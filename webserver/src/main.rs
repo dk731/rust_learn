@@ -6,12 +6,17 @@ use std::{
 };
 
 mod HTTP;
+mod ThreadsPool;
 
 fn main() {
     let listener = TcpListener::bind("localhost:3005").unwrap();
+    let mut threads_pool = ThreadsPool::Pool::new(6);
 
     for stream in listener.incoming() {
+        threads_pool.excecute(|| println!("Wee"));
+
         let stream = stream.unwrap();
+
         handle_connection(stream);
     }
 }
