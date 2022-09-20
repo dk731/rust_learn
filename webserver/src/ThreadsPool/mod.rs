@@ -21,16 +21,27 @@ impl Worker {
         available_jobs: Arc<Mutex<Vec<Job>>>,
         job_notify: Arc<Condvar>,
         job_finished: Arc<Mutex<bool>>,
+        name: String,
     ) -> Self {
         let thread_handle = thread::spawn(move || {
             println!("Staring worker thread");
 
             loop {
                 let mut jobs = available_jobs.lock().unwrap();
-                while *job_finished.lock().unwrap() && jobs.len() == 0 {
-                    jobs = job_notify.wait(jobs).unwrap();
+                loop {
+                    if (*job_finished.lock().unwrap()) {
+                        println!("Finshed!");
+                        return;
+                    }
+
+                    if (jobs.len() == 0) {
+                        jobs = job_notify.wait(jobs).unwrap();
+                    } else {
+                        break;
+                    }
                 }
 
+                println!("Execution from: {name}");
                 jobs.pop().unwrap()();
             }
         });
@@ -53,7 +64,14 @@ impl Pool {
 
         Pool {
             workers: (0..pool_size)
-                .map(|_| Worker::new(jobs.clone(), jobs_notif.clone(), jobs_finished.clone()))
+                .map(|id| {
+                    Worker::new(
+                        jobs.clone(),
+                        jobs_notif.clone(),
+                        jobs_finished.clone(),
+                        id.to_string(),
+                    )
+                })
                 .collect(),
             jobs: jobs,
             jobs_notif,

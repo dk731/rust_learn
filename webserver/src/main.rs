@@ -10,14 +10,13 @@ mod ThreadsPool;
 
 fn main() {
     let listener = TcpListener::bind("localhost:3005").unwrap();
-    let mut threads_pool = ThreadsPool::Pool::new(6);
+    let mut threads_pool = ThreadsPool::Pool::new(5);
 
     for stream in listener.incoming() {
-        threads_pool.excecute(|| println!("Wee"));
-
-        let stream = stream.unwrap();
-
-        handle_connection(stream);
+        threads_pool.excecute(move || {
+            let stream = stream.unwrap();
+            handle_connection(stream);
+        });
     }
 }
 
@@ -36,5 +35,4 @@ fn handle_connection(mut stream: TcpStream) {
     res.set_body(&html_str);
 
     stream.write_all(res.result().as_bytes());
-    // println!("{response}");
 }
